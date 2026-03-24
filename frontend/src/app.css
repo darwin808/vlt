@@ -1,0 +1,9 @@
+@import 'tailwindcss';
+
+html {
+	background-color: #09090b;
+}
+
+::selection {
+	background-color: rgb(16 185 129 / 0.3);
+}

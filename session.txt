@@ -1,0 +1,31 @@
+Project: VLT — Local-first developer secrets vault
+Date: 2026-03-23
+Resume: run `claude --continue` or `claude --resume` from terminal
+
+== Decisions Made ==
+- Product: developer secrets vault (not just a password manager)
+- Manages: passwords, API keys, env vars, SSH keys
+- Architecture: Tauri (Rust) + SvelteKit frontend + SQLite (local)
+- Encryption: client-side AES-256-GCM + Argon2 key derivation
+- Zero-knowledge: all crypto happens on-device
+- Future sync: PocketBase on VPS (139.180.216.160) when ready
+- Deploy sync server: Docker + GitHub Actions CI/CD
+
+== UX ==
+- Keyboard-first, minimal mouse movement
+- Global hotkey (Cmd+Shift+V) → search → Enter → copied to clipboard
+- CLI: vlt get, vlt env inject, vlt ssh list
+
+== Monetization (future) ==
+- Phase 1: Build for personal use
+- Phase 2: Open source CLI
+- Phase 3: Paid desktop app ($49 one-time)
+- Phase 4: Team sync ($8/user/mo)
+
+== Tech on VPS ==
+- Ubuntu 24.04, 1GB RAM, 23GB disk
+- Docker installed, Next.js app running on port 3000
+- Will host PocketBase for sync later
+
+== Next Step ==
+- Scaffold Tauri + SvelteKit project in /Users/darwin1/Documents/mvp/vlt

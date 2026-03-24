@@ -1,0 +1,11 @@
+{
+  "name": "vlt-monorepo",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter frontend dev",
+    "build": "pnpm --filter frontend build",
+    "desktop": "pnpm --filter app tauri dev",
+    "desktop:build": "pnpm --filter app tauri build",
+    "db": "cd db && ./pocketbase serve"
+  }
+}

@@ -1,0 +1,10 @@
+node_modules/
+target/
+build/
+.svelte-kit/
+dist/
+*.lock
+
+# PocketBase
+db/pocketbase
+db/pb_data/
