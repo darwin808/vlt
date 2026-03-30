@@ -50,6 +50,7 @@ export const api = {
 			username?: string;
 			url?: string;
 		}) => request('/api/secrets', { method: 'POST', body: JSON.stringify(data) }),
-		delete: (id: string) => request(`/api/secrets/${id}`, { method: 'DELETE' })
+		delete: (id: string) => request(`/api/secrets/${id}`, { method: 'DELETE' }),
+		touch: (id: string) => request(`/api/secrets/${id}/used`, { method: 'PATCH' })
 	}
 };

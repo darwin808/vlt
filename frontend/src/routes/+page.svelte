@@ -251,6 +251,7 @@
 							{secret}
 							selected={i === selectedIndex}
 							onDeleted={loadSecrets}
+							onUsed={loadSecrets}
 							bind:this={cardRefs[secret.id]}
 						/>
 					</div>

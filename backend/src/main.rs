@@ -9,7 +9,7 @@ use axum::{
     extract::{FromRequestParts, Path, State},
     http::{request::Parts, StatusCode},
     response::{IntoResponse, Response},
-    routing::{delete, get, post},
+    routing::{delete, get, patch, post},
     Json, Router,
 };
 use axum_extra::extract::cookie::{Cookie, SameSite};
@@ -169,6 +169,7 @@ struct SecretRow {
     username: String,
     url: String,
     created_at: String,
+    last_used_at: Option<String>,
 }
 
 // ---------------------------------------------------------------------------
@@ -405,8 +406,8 @@ async fn list_secrets(
     user: AuthUser,
 ) -> Result<Json<Vec<SecretRow>>, AppError> {
     let secrets: Vec<SecretRow> = sqlx::query_as(
-        "SELECT id, user_id, name, type, encrypted_value, iv, username, url, created_at \
-         FROM secrets WHERE user_id = ? ORDER BY created_at DESC",
+        "SELECT id, user_id, name, type, encrypted_value, iv, username, url, created_at, last_used_at \
+         FROM secrets WHERE user_id = ? ORDER BY last_used_at DESC NULLS LAST, created_at DESC",
     )
     .bind(&user.id)
     .fetch_all(&state.db)
@@ -446,7 +447,7 @@ async fn create_secret(
     .await?;
 
     let secret: SecretRow = sqlx::query_as(
-        "SELECT id, user_id, name, type, encrypted_value, iv, username, url, created_at \
+        "SELECT id, user_id, name, type, encrypted_value, iv, username, url, created_at, last_used_at \
          FROM secrets WHERE id = ?",
     )
     .bind(&secret_id)
@@ -454,6 +455,26 @@ async fn create_secret(
     .await?;
 
     Ok((StatusCode::CREATED, Json(secret)))
+}
+
+async fn touch_secret(
+    State(state): State<AppState>,
+    user: AuthUser,
+    Path(secret_id): Path<String>,
+) -> Result<Json<serde_json::Value>, AppError> {
+    let now = chrono_now();
+    let result = sqlx::query("UPDATE secrets SET last_used_at = ? WHERE id = ? AND user_id = ?")
+        .bind(&now)
+        .bind(&secret_id)
+        .bind(&user.id)
+        .execute(&state.db)
+        .await?;
+
+    if result.rows_affected() == 0 {
+        return Err(AppError(StatusCode::NOT_FOUND, "Secret not found".into()));
+    }
+
+    Ok(Json(serde_json::json!({ "ok": true })))
 }
 
 async fn delete_secret(
@@ -529,6 +550,7 @@ async fn main() {
         .route("/auth/me", get(me))
         .route("/secrets", get(list_secrets).post(create_secret))
         .route("/secrets/:id", delete(delete_secret))
+        .route("/secrets/:id/used", patch(touch_secret))
         .with_state(state);
 
     // SPA fallback: serve index.html for any non-API, non-file route.

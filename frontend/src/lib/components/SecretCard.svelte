@@ -7,8 +7,9 @@
 	let {
 		secret,
 		selected = false,
-		onDeleted
-	}: { secret: SecretRecord; selected: boolean; onDeleted: () => void } = $props();
+		onDeleted,
+		onUsed
+	}: { secret: SecretRecord; selected: boolean; onDeleted: () => void; onUsed: () => void } = $props();
 
 	let revealed = $state(false);
 	let decryptedValue = $state('');
@@ -36,6 +37,7 @@
 				: await decrypt(auth.key, secret.encrypted_value, secret.iv);
 			await navigator.clipboard.writeText(value);
 			flashCopied('pass');
+			api.secrets.touch(secret.id).then(() => onUsed()).catch(() => {});
 		} catch { /* ignore */ }
 	}
 
@@ -43,6 +45,7 @@
 		if (!secret.username) return;
 		await navigator.clipboard.writeText(secret.username);
 		flashCopied('user');
+		api.secrets.touch(secret.id).then(() => onUsed()).catch(() => {});
 	}
 
 	export async function toggleReveal() {
