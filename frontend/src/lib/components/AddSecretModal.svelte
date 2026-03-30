@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { auth } from '$lib/auth.svelte';
 	import { encrypt } from '$lib/crypto';
-	import pb from '$lib/pb';
+	import { api } from '$lib/api';
 	import type { SecretType } from '$lib/types';
 
 	let { open = $bindable(false), onSaved }: { open: boolean; onSaved: () => void } = $props();
@@ -38,7 +38,7 @@
 
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
-		if (!auth.key || !auth.user) return;
+		if (!auth.key) return;
 
 		error = '';
 		loading = true;
@@ -46,14 +46,13 @@
 		try {
 			const { ciphertext, iv } = await encrypt(auth.key, value);
 
-			await pb.collection('secrets').create({
+			await api.secrets.create({
 				name,
 				type,
 				encrypted_value: ciphertext,
 				iv,
 				username: username || '',
-				url: url || '',
-				user: auth.user.id
+				url: url || ''
 			});
 
 			close();

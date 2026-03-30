@@ -5,6 +5,11 @@ build/
 dist/
 *.lock
 
-# PocketBase
+# PocketBase (legacy)
 db/pocketbase
 db/pb_data/
+
+# SQLite
+*.db
+*.db-shm
+*.db-wal

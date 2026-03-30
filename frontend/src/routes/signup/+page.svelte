@@ -36,65 +36,54 @@
 </script>
 
 <div class="flex min-h-screen items-center justify-center bg-zinc-950 px-4">
-	<div class="w-full max-w-sm">
-		<div class="mb-8 text-center">
-			<h1 class="text-3xl font-bold tracking-tight text-zinc-100">VLT</h1>
-			<p class="mt-1 text-sm text-zinc-500">Create your vault</p>
+	<div class="w-full max-w-xs">
+		<div class="mb-6 text-center">
+			<h1 class="text-xl font-bold tracking-tight text-zinc-300">VLT</h1>
+			<p class="mt-0.5 text-xs text-zinc-600">create your vault</p>
 		</div>
 
-		<form onsubmit={handleSubmit} class="space-y-4">
-			<div>
-				<label for="email" class="mb-1 block text-sm text-zinc-400">Email</label>
-				<input
-					id="email"
-					type="email"
-					bind:value={email}
-					required
-					class="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-zinc-100 placeholder-zinc-600 outline-none focus:border-emerald-500"
-					placeholder="you@example.com"
-				/>
-			</div>
-
-			<div>
-				<label for="password" class="mb-1 block text-sm text-zinc-400">Master Password</label>
-				<input
-					id="password"
-					type="password"
-					bind:value={password}
-					required
-					minlength="10"
-					class="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-zinc-100 placeholder-zinc-600 outline-none focus:border-emerald-500"
-					placeholder="Min 10 characters"
-				/>
-			</div>
-
-			<div>
-				<label for="confirm" class="mb-1 block text-sm text-zinc-400">Confirm Password</label>
-				<input
-					id="confirm"
-					type="password"
-					bind:value={confirm}
-					required
-					class="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-zinc-100 placeholder-zinc-600 outline-none focus:border-emerald-500"
-					placeholder="••••••••••••"
-				/>
-			</div>
+		<form onsubmit={handleSubmit} class="space-y-3">
+			<input
+				id="email"
+				type="email"
+				bind:value={email}
+				required
+				class="w-full rounded border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 outline-none focus:border-zinc-600"
+				placeholder="Email"
+			/>
+			<input
+				id="password"
+				type="password"
+				bind:value={password}
+				required
+				minlength="10"
+				class="w-full rounded border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 outline-none focus:border-zinc-600"
+				placeholder="Master password (min 10 chars)"
+			/>
+			<input
+				id="confirm"
+				type="password"
+				bind:value={confirm}
+				required
+				class="w-full rounded border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 outline-none focus:border-zinc-600"
+				placeholder="Confirm password"
+			/>
 
 			{#if error}
-				<p class="text-sm text-red-400">{error}</p>
+				<p class="text-xs text-red-400">{error}</p>
 			{/if}
 
 			<button
 				type="submit"
 				disabled={loading}
-				class="w-full rounded-lg bg-emerald-600 px-4 py-2 font-medium text-white transition hover:bg-emerald-500 disabled:opacity-50"
+				class="w-full rounded bg-zinc-800 px-4 py-2 text-sm font-medium text-zinc-200 transition hover:bg-zinc-700 disabled:opacity-50"
 			>
 				{loading ? '...' : 'Create Vault'}
 			</button>
 		</form>
 
-		<p class="mt-4 text-center text-sm text-zinc-500">
-			Have an account? <a href="/login" class="text-emerald-400 hover:underline">Sign in</a>
+		<p class="mt-3 text-center text-xs text-zinc-600">
+			Have an account? <a href="/login" class="text-zinc-400 hover:text-zinc-200">Sign in</a>
 		</p>
 	</div>
 </div>

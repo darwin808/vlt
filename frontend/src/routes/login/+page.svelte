@@ -7,19 +7,13 @@
 	let error = $state('');
 	let loading = $state(false);
 
-	const isLocked = $derived(auth.isAuthenticated && !auth.isUnlocked);
-
 	async function handleSubmit(e: Event) {
 		e.preventDefault();
 		error = '';
 		loading = true;
 
 		try {
-			if (isLocked) {
-				await auth.unlock(password);
-			} else {
-				await auth.login(email, password);
-			}
+			await auth.login(email, password);
 			goto('/');
 		} catch (err: any) {
 			error = err?.message || 'Authentication failed';
@@ -30,58 +24,45 @@
 </script>
 
 <div class="flex min-h-screen items-center justify-center bg-zinc-950 px-4">
-	<div class="w-full max-w-sm">
-		<div class="mb-8 text-center">
-			<h1 class="text-3xl font-bold tracking-tight text-zinc-100">VLT</h1>
-			<p class="mt-1 text-sm text-zinc-500">
-				{isLocked ? 'Enter master password to unlock' : 'Sign in to your vault'}
-			</p>
+	<div class="w-full max-w-xs">
+		<div class="mb-6 text-center">
+			<h1 class="text-xl font-bold tracking-tight text-zinc-300">VLT</h1>
+			<p class="mt-0.5 text-xs text-zinc-600">developer secrets vault</p>
 		</div>
 
-		<form onsubmit={handleSubmit} class="space-y-4">
-			{#if !isLocked}
-				<div>
-					<label for="email" class="mb-1 block text-sm text-zinc-400">Email</label>
-					<input
-						id="email"
-						type="email"
-						bind:value={email}
-						required
-						class="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-zinc-100 placeholder-zinc-600 outline-none focus:border-emerald-500"
-						placeholder="you@example.com"
-					/>
-				</div>
-			{/if}
-
-			<div>
-				<label for="password" class="mb-1 block text-sm text-zinc-400">Master Password</label>
-				<input
-					id="password"
-					type="password"
-					bind:value={password}
-					required
-					class="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-zinc-100 placeholder-zinc-600 outline-none focus:border-emerald-500"
-					placeholder="••••••••••••"
-				/>
-			</div>
+		<form onsubmit={handleSubmit} class="space-y-3">
+			<input
+				id="email"
+				type="email"
+				bind:value={email}
+				required
+				class="w-full rounded border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 outline-none focus:border-zinc-600"
+				placeholder="Email"
+			/>
+			<input
+				id="password"
+				type="password"
+				bind:value={password}
+				required
+				class="w-full rounded border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 outline-none focus:border-zinc-600"
+				placeholder="Master password"
+			/>
 
 			{#if error}
-				<p class="text-sm text-red-400">{error}</p>
+				<p class="text-xs text-red-400">{error}</p>
 			{/if}
 
 			<button
 				type="submit"
 				disabled={loading}
-				class="w-full rounded-lg bg-emerald-600 px-4 py-2 font-medium text-white transition hover:bg-emerald-500 disabled:opacity-50"
+				class="w-full rounded bg-zinc-800 px-4 py-2 text-sm font-medium text-zinc-200 transition hover:bg-zinc-700 disabled:opacity-50"
 			>
-				{loading ? '...' : isLocked ? 'Unlock' : 'Sign In'}
+				{loading ? '...' : 'Unlock'}
 			</button>
 		</form>
 
-		{#if !isLocked}
-			<p class="mt-4 text-center text-sm text-zinc-500">
-				No account? <a href="/signup" class="text-emerald-400 hover:underline">Create one</a>
-			</p>
-		{/if}
+		<p class="mt-3 text-center text-xs text-zinc-600">
+			No account? <a href="/signup" class="text-zinc-400 hover:text-zinc-200">Create one</a>
+		</p>
 	</div>
 </div>

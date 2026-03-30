@@ -1,54 +1,69 @@
-import pb from './pb';
-import { deriveKey, generateSalt } from './crypto';
-import type { RecordModel } from 'pocketbase';
+import { api } from './api';
+import { deriveKey, generateSalt, storeKey, restoreKey, clearStoredKey } from './crypto';
 
-let user = $state<RecordModel | null>(pb.authStore.record);
+interface User {
+	id: string;
+	email: string;
+	encryption_salt: string;
+}
+
+let user = $state<User | null>(null);
 let encryptionKey = $state<CryptoKey | null>(null);
+let ready = $state(false);
 
-pb.authStore.onChange((_, record) => {
-	user = record;
-});
+async function init() {
+	try {
+		const me = await api.auth.me();
+		user = me;
+		encryptionKey = await restoreKey();
+	} catch {
+		user = null;
+		clearStoredKey();
+	}
+	ready = true;
+}
+
+init();
 
 export const auth = {
 	get user() {
 		return user;
 	},
 	get isAuthenticated() {
-		return pb.authStore.isValid;
+		return user !== null;
 	},
 	get isUnlocked() {
 		return encryptionKey !== null;
+	},
+	get isReady() {
+		return ready;
 	},
 	get key() {
 		return encryptionKey;
 	},
 
 	async login(email: string, password: string) {
-		const record = await pb.collection('users').authWithPassword(email, password);
-		const salt = record.record.encryption_salt;
+		const record = await api.auth.login({ email, password });
+		user = record;
+		const salt = record.encryption_salt;
 		encryptionKey = await deriveKey(password, salt);
+		await storeKey(encryptionKey);
 	},
 
 	async signup(email: string, password: string) {
 		const salt = generateSalt();
-		await pb.collection('users').create({
-			email,
-			password,
-			passwordConfirm: password,
-			encryption_salt: salt
-		});
+		await api.auth.signup({ email, password, encryption_salt: salt });
 		await this.login(email, password);
 	},
 
-	async unlock(password: string) {
-		if (!user) throw new Error('Not authenticated');
-		const salt = user.encryption_salt as string;
-		encryptionKey = await deriveKey(password, salt);
-	},
-
-	logout() {
-		pb.authStore.clear();
+	async logout() {
+		try {
+			await api.auth.logout();
+		} catch {
+			// Ignore logout errors — clear local state regardless
+		}
 		encryptionKey = null;
 		user = null;
+		clearStoredKey();
 	}
 };

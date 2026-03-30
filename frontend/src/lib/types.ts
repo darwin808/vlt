@@ -1,15 +1,14 @@
-import type { RecordModel } from 'pocketbase';
-
 export type SecretType = 'password' | 'api_key' | 'env_var' | 'ssh_key' | 'note';
 
-export interface SecretRecord extends RecordModel {
+export interface SecretRecord {
+	id: string;
 	name: string;
 	type: SecretType;
 	encrypted_value: string;
 	iv: string;
 	url: string;
 	username: string;
-	user: string;
+	created_at: string;
 }
 
 export interface BrowserPasswordEntry {

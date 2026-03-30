@@ -2,7 +2,7 @@
 	import Papa from 'papaparse';
 	import { auth } from '$lib/auth.svelte';
 	import { encrypt } from '$lib/crypto';
-	import pb from '$lib/pb';
+	import { api } from '$lib/api';
 	import type { BrowserPasswordEntry } from '$lib/types';
 
 	let { open = $bindable(false), onDone }: { open: boolean; onDone: () => void } = $props();
@@ -13,6 +13,7 @@
 	let error = $state('');
 	let step = $state<'upload' | 'preview' | 'importing' | 'done'>('upload');
 	let skipped = $state(0);
+	let detectedHeaders = $state<string[]>([]);
 
 	function close() {
 		open = false;
@@ -35,52 +36,37 @@
 			skipEmptyLines: true,
 			complete(results) {
 				const headers = results.meta.fields || [];
+				// Normalize: find columns case-insensitively
+				const h = new Set(headers.map((h) => h.toLowerCase()));
 
-				// Detect Chromium format (Brave, Chrome, Edge)
-				const isChromium = headers.includes('name') && headers.includes('url') && headers.includes('username') && headers.includes('password');
+				const hasPassword = h.has('password');
+				const hasUrl = h.has('url');
 
-				// Detect Firefox format
-				const isFirefox = headers.includes('url') && headers.includes('username') && headers.includes('password') && headers.includes('httpRealm');
-
-				// Detect Safari format
-				const isSafari = headers.includes('Title') && headers.includes('URL') && headers.includes('Username') && headers.includes('Password');
-
-				if (!isChromium && !isFirefox && !isSafari) {
-					error = `Unrecognized CSV format. Headers found: ${headers.join(', ')}. Supported: Brave, Chrome, Edge, Firefox, Safari.`;
+				if (!hasPassword) {
+					error = `No "password" column found. Headers: ${headers.join(', ')}`;
 					return;
+				}
+
+				// Build a case-insensitive column lookup
+				const colMap: Record<string, string> = {};
+				for (const header of headers) {
+					colMap[header.toLowerCase()] = header;
 				}
 
 				const parsed: BrowserPasswordEntry[] = [];
 
 				for (const row of results.data as Record<string, string>[]) {
-					let entry: BrowserPasswordEntry;
+					const get = (key: string) => row[colMap[key] || ''] || '';
 
-					if (isChromium) {
-						entry = {
-							name: row.name || '',
-							url: row.url || '',
-							username: row.username || '',
-							password: row.password || '',
-							note: row.note || ''
-						};
-					} else if (isFirefox) {
-						const url = row.url || '';
-						entry = {
-							name: new URL(url).hostname || url,
-							url,
-							username: row.username || '',
-							password: row.password || ''
-						};
-					} else {
-						// Safari
-						entry = {
-							name: row.Title || '',
-							url: row.URL || '',
-							username: row.Username || '',
-							password: row.Password || '',
-							note: row.Notes || ''
-						};
-					}
+					const entry: BrowserPasswordEntry = {
+						name: get('name') || get('title') || '',
+						url: get('url') || '',
+						username: get('username') || get('login') || '',
+						password: get('password') || '',
+						note: get('note') || get('notes') || ''
+					};
+
+					console.log('Parsed entry:', entry.name, 'username:', entry.username);
 
 					// Skip entries with no password
 					if (!entry.password) {
@@ -101,6 +87,7 @@
 				}
 
 				entries = parsed;
+				detectedHeaders = headers;
 				step = 'preview';
 			},
 			error(err) {
@@ -113,7 +100,7 @@
 	}
 
 	async function handleImport() {
-		if (!auth.key || !auth.user) return;
+		if (!auth.key) return;
 
 		step = 'importing';
 		importing = true;
@@ -124,14 +111,13 @@
 				const entry = entries[i];
 				const { ciphertext, iv } = await encrypt(auth.key, entry.password);
 
-				await pb.collection('secrets').create({
+				await api.secrets.create({
 					name: entry.name,
 					type: 'password',
 					encrypted_value: ciphertext,
 					iv,
 					username: entry.username || '',
-					url: entry.url || '',
-					user: auth.user.id
+					url: entry.url || ''
 				});
 
 				progress = i + 1;
@@ -206,8 +192,11 @@
 
 			{:else if step === 'preview'}
 				<h2 class="mb-1 text-lg font-semibold text-zinc-100">Preview Import</h2>
-				<p class="mb-4 text-sm text-zinc-400">
+				<p class="mb-2 text-sm text-zinc-400">
 					{entries.length} passwords found{skipped ? `, ${skipped} skipped (no password)` : ''}
+				</p>
+				<p class="mb-4 text-xs text-zinc-600">
+					CSV columns: {detectedHeaders.join(', ')}
 				</p>
 
 				<div class="max-h-64 space-y-1 overflow-y-auto rounded-lg bg-zinc-800 p-3">

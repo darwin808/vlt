@@ -26,7 +26,6 @@
 	},
 	"dependencies": {
 		"@tauri-apps/api": "^2.10.1",
-		"papaparse": "^5.5.3",
-		"pocketbase": "^0.26.8"
+		"papaparse": "^5.5.3"
 	}
 }

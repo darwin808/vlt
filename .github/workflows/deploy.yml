@@ -1,0 +1,50 @@
+name: Build & Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: backend/Dockerfile
+          push: true
+          tags: ghcr.io/darwin808/vlt:latest
+
+      - name: Deploy to Vultr
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VULTR_HOST }}
+          username: ${{ secrets.VULTR_USER }}
+          key: ${{ secrets.VULTR_SSH_KEY }}
+          script: |
+            sudo docker pull ghcr.io/darwin808/vlt:latest
+            sudo docker stop vlt || true
+            sudo docker rm vlt || true
+            sudo docker run -d \
+              --name vlt \
+              --restart unless-stopped \
+              -p 8080:8080 \
+              -v /home/darwin1/vlt-data:/data \
+              -e DATABASE_URL="sqlite:///data/vlt.db?mode=rwc" \
+              -e COOKIE_SECURE=false \
+              -e PORT=8080 \
+              -e FRONTEND_DIR=/srv/frontend \
+              ghcr.io/darwin808/vlt:latest
+            sudo docker image prune -f

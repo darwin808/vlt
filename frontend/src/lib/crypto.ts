@@ -28,7 +28,7 @@ export async function deriveKey(password: string, saltB64: string): Promise<Cryp
 		{ name: 'PBKDF2', salt, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
 		keyMaterial,
 		{ name: 'AES-GCM', length: KEY_LENGTH },
-		false,
+		true,
 		['encrypt', 'decrypt']
 	);
 }
@@ -50,6 +50,30 @@ export async function encrypt(
 		ciphertext: toBase64(encrypted),
 		iv: toBase64(iv)
 	};
+}
+
+const SESSION_KEY = 'vlt_ek';
+
+export async function storeKey(key: CryptoKey): Promise<void> {
+	const jwk = await crypto.subtle.exportKey('jwk', key);
+	sessionStorage.setItem(SESSION_KEY, JSON.stringify(jwk));
+}
+
+export async function restoreKey(): Promise<CryptoKey | null> {
+	const stored = sessionStorage.getItem(SESSION_KEY);
+	if (!stored) return null;
+
+	try {
+		const jwk = JSON.parse(stored);
+		return crypto.subtle.importKey('jwk', jwk, { name: 'AES-GCM' }, true, ['encrypt', 'decrypt']);
+	} catch {
+		sessionStorage.removeItem(SESSION_KEY);
+		return null;
+	}
+}
+
+export function clearStoredKey(): void {
+	sessionStorage.removeItem(SESSION_KEY);
 }
 
 export async function decrypt(key: CryptoKey, ciphertextB64: string, ivB64: string): Promise<string> {
