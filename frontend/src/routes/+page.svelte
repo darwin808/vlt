@@ -37,8 +37,8 @@
 		selectedIndex = 0;
 	});
 
-	async function loadSecrets() {
-		loading = true;
+	async function loadSecrets(silent = false) {
+		if (!silent) loading = true;
 		loadError = '';
 		try {
 			const result = await api.secrets.list();
@@ -251,7 +251,7 @@
 							{secret}
 							selected={i === selectedIndex}
 							onDeleted={loadSecrets}
-							onUsed={loadSecrets}
+							onUsed={() => loadSecrets(true)}
 							bind:this={cardRefs[secret.id]}
 						/>
 					</div>
