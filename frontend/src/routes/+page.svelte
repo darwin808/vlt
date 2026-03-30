@@ -207,11 +207,12 @@
 	<!-- Table header -->
 	{#if !loading && filtered.length > 0}
 		<div class="mx-auto w-full max-w-4xl">
-			<div class="flex items-center gap-3 px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-zinc-700">
+			<div class="flex items-center gap-2 px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-zinc-700">
 				<span class="w-4 shrink-0"></span>
-				<span class="w-48 shrink-0">Name</span>
-				<span class="min-w-0 flex-1">Username</span>
-				<span class="w-24 shrink-0"></span>
+				<span class="w-40 shrink-0">Name</span>
+				<span class="w-36 shrink-0">Username</span>
+				<span class="min-w-0 flex-1">Password</span>
+				<span class="w-16 shrink-0"></span>
 			</div>
 		</div>
 	{/if}

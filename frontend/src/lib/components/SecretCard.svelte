@@ -85,38 +85,44 @@
 		</span>
 
 		<!-- Name -->
-		<span class="w-44 shrink-0 truncate text-sm text-zinc-200">{secret.name}</span>
+		<span class="w-40 shrink-0 truncate text-sm text-zinc-200">{secret.name}</span>
 
 		<!-- Username — click to copy -->
 		<button
 			onclick={() => copyUsername()}
-			class="group/u min-w-0 flex-1 truncate text-left text-sm transition {copiedField === 'user'
+			class="w-36 shrink-0 truncate text-left text-sm transition {copiedField === 'user'
 				? 'text-emerald-400'
 				: secret.username
-					? 'text-zinc-500 hover:text-zinc-300'
+					? 'text-zinc-500 hover:text-zinc-300 cursor-pointer'
 					: 'text-zinc-700 cursor-default'}"
-			title={secret.username ? 'Copy username' : ''}
+			title={secret.username ? 'Click to copy username' : ''}
 			disabled={!secret.username}
 		>
 			{copiedField === 'user' ? 'Copied!' : secret.username || '—'}
 		</button>
 
-		<!-- Copy password button -->
+		<!-- Password — click to copy, shows dots or revealed value -->
 		<button
 			onclick={() => copyPassword()}
-			class="shrink-0 rounded px-2 py-1 text-[10px] font-medium uppercase tracking-wider transition {copiedField === 'pass'
-				? 'bg-emerald-500/20 text-emerald-400'
-				: 'bg-zinc-800 text-zinc-500 hover:bg-zinc-700 hover:text-zinc-300'}"
-			title="Copy password (Enter)"
+			class="min-w-0 flex-1 truncate text-left text-sm font-mono transition {copiedField === 'pass'
+				? 'text-emerald-400'
+				: 'text-zinc-600 hover:text-zinc-300 cursor-pointer'}"
+			title="Click to copy password"
 		>
-			{copiedField === 'pass' ? 'Copied!' : 'Copy'}
+			{#if copiedField === 'pass'}
+				Copied!
+			{:else if revealed}
+				{decryptedValue}
+			{:else}
+				••••••••••
+			{/if}
 		</button>
 
-		<!-- Reveal -->
+		<!-- Eye toggle -->
 		<button
 			onclick={() => toggleReveal()}
-			class="shrink-0 rounded p-1 text-zinc-600 transition hover:text-zinc-300"
-			title={revealed ? 'Hide' : 'Reveal (Space)'}
+			class="shrink-0 rounded p-1 transition {revealed ? 'text-zinc-300' : 'text-zinc-700 hover:text-zinc-400'}"
+			title={revealed ? 'Hide (Space)' : 'Reveal (Space)'}
 		>
 			{#if revealed}
 				<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
@@ -146,10 +152,4 @@
 			{/if}
 		</button>
 	</div>
-
-	{#if revealed}
-		<div class="ml-7 border-l-2 border-zinc-800 bg-zinc-900/50 px-4 py-2">
-			<pre class="font-mono text-xs text-zinc-400">{decryptedValue}</pre>
-		</div>
-	{/if}
 </div>
